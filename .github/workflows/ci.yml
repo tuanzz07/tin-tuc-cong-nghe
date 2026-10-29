@@ -1,0 +1,41 @@
+# CI/CD Pipeline - Chạy tự động khi push hoặc tạo pull request vào nhánh main
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Lint, Type Check & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # Bước 1: Checkout code về máy CI
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Bước 2: Cài đặt Node.js 20 với cache npm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Bước 3: Cài dependencies từ package-lock.json (nhanh hơn npm install)
+      - name: Install dependencies
+        run: npm ci
+
+      # Bước 4: Kiểm tra lỗi ESLint (code style và quy tắc)
+      - name: Run ESLint
+        run: npm run lint
+
+      # Bước 5: Kiểm tra kiểu TypeScript (không biên dịch, chỉ kiểm tra)
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      # Bước 6: Build thử để chắc chắn không lỗi production
+      - name: Build application
+        run: npm run build
